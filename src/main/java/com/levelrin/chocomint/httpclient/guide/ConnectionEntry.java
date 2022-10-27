@@ -66,7 +66,7 @@ public final class ConnectionEntry {
                 (byte[]) this.config.get(ConfigKeys.BODY)
             ).orElse(new byte[0]);
             try (
-                Socket socket = new Socket(url.getHost(), port);
+                Socket socket = new SocketFromUrl(url, port).create();
                 BufferedOutputStream output = new BufferedOutputStream(socket.getOutputStream());
                 BufferedInputStream input = new BufferedInputStream(socket.getInputStream())
             ) {

@@ -13,17 +13,23 @@ import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import spark.Spark;
+import spark.Service;
 
 /**
  * It has basic use cases.
  */
 final class BasicTests {
 
+    /**
+     * Web server for testing.
+     */
+    private static Service service;
+
     @BeforeAll
     static void startServer() {
-        Spark.get("/get", (request, response) -> "GET received");
-        Spark.post("/post", (request, response) -> {
+        service = Service.ignite();
+        service.get("/get", (request, response) -> "GET received");
+        service.post("/post", (request, response) -> {
             final String body = request.body();
             final String result;
             if ("body from client".equals(body)) {
@@ -33,17 +39,17 @@ final class BasicTests {
             }
             return result;
         });
-        Spark.delete("/delete", (request, response) -> {
+        service.delete("/delete", (request, response) -> {
             final int noContent = 204;
             response.status(noContent);
             return "";
         });
-        Spark.awaitInitialization();
+        service.awaitInitialization();
     }
 
     @AfterAll
     static void stopServer() {
-        Spark.awaitStop();
+        service.awaitStop();
     }
 
     @Test
