@@ -7,10 +7,10 @@
 
 package com.levelrin.chocomint.httpclient.response;
 
+import com.levelrin.chocomint.httpclient.response.chunked.ChunkedTransferCoding;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.lang3.ArrayUtils;
 
 /**
  * It's responsible for parsing the bytes to provide HTTP response.
@@ -18,36 +18,52 @@ import org.apache.commons.lang3.ArrayUtils;
 public final class ResponseFromBytes implements Response {
 
     /**
-     * HTTP response in bytes.
+     * It's for parsing the HTTP response in bytes
+     * into three parts: status line, headers, and body.
+     * The return type of each part is still in bytes.
+     * That means more parsing is needed for end users.
      */
-    private final List<Integer> bytes;
+    private final ParsedBytes bytes;
 
     /**
-     * Constructor.
-     * @param bytes See {@link ResponseFromBytes#bytes}.
+     * Secondary constructor.
+     * @param bytes HTTP response in bytes.
      */
     public ResponseFromBytes(final List<Integer> bytes) {
+        this(new ParsedBytes(bytes));
+    }
+
+    /**
+     * Primary constructor.
+     * @param bytes See {@link ResponseFromBytes#bytes}.
+     */
+    public ResponseFromBytes(final ParsedBytes bytes) {
         this.bytes = bytes;
     }
 
     @Override
     public StatusLine status() {
         return new StatusFromBytes(
-            new ParsedBytes(this.bytes).statusLine()
+            this.bytes.statusLine()
         );
     }
 
     @Override
     public Map<String, String> headers() {
+        // fixme: it's not efficient if both headers() and body() are used
+        // because body() also calls headers() internally.
         return new HeadersFromBytes(
-            new ParsedBytes(this.bytes).headers()
+            this.bytes.headers()
         ).get();
     }
 
     @Override
     public ResponseBody body() {
-        return new BodyFromBytes(
-            new ParsedBytes(this.bytes).body()
+        return new ChunkedTransferCoding(
+            this.headers(),
+            new BodyFromBytes(
+                this.bytes.body()
+            )
         );
     }
 
@@ -58,11 +74,7 @@ public final class ResponseFromBytes implements Response {
     @Override
     public String toString() {
         return new String(
-            ArrayUtils.toPrimitive(
-                this.bytes.stream().map(
-                    Integer::byteValue
-                ).toArray(Byte[]::new)
-            ),
+            this.bytes.inBytes(),
             StandardCharsets.UTF_8
         );
     }

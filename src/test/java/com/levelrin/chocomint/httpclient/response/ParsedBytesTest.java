@@ -9,6 +9,7 @@ package com.levelrin.chocomint.httpclient.response;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.MatcherAssert;
@@ -67,6 +68,19 @@ final class ParsedBytesTest {
             "Should return an empty list if the body does not exist.",
             new ParsedBytes(this.responseWithoutBody()).body(),
             Matchers.empty()
+        );
+    }
+
+    @Test
+    void shouldConvertResponseTypeFromListToPrimitiveArray() {
+        MatcherAssert.assertThat(
+            "Should convert the response from list of integers to array of bytes.",
+            new ParsedBytes(
+                Arrays.asList(1, 0, 1)
+            ).inBytes(),
+            CoreMatchers.equalTo(
+                new byte[] {1, 0, 1}
+            )
         );
     }
 

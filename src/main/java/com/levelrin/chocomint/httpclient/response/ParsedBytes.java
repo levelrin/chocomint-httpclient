@@ -9,6 +9,7 @@ package com.levelrin.chocomint.httpclient.response;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.commons.lang3.ArrayUtils;
 
 /**
  * It's responsible for parsing the bytes from the server.
@@ -24,17 +25,17 @@ public final class ParsedBytes {
     /**
      * We will store the status line after the parse.
      */
-    private final List<Integer> statusCache = new ArrayList<>();
+    private final List<Integer> statusCache = new ArrayList<>(1);
 
     /**
      * We will store the headers after the parse.
      */
-    private final List<Integer> headersCache = new ArrayList<>();
+    private final List<Integer> headersCache = new ArrayList<>(1);
 
     /**
      * We will store the body after the parse.
      */
-    private final List<Integer> bodyCache = new ArrayList<>();
+    private final List<Integer> bodyCache = new ArrayList<>(1);
 
     /**
      * Constructor.
@@ -75,6 +76,18 @@ public final class ParsedBytes {
             this.parse();
         }
         return new ArrayList<>(this.bodyCache);
+    }
+
+    /**
+     * Convert the bytes from list of integers to array of bytes.
+     * @return HTTP response in primitive form.
+     */
+    public byte[] inBytes() {
+        return ArrayUtils.toPrimitive(
+            this.bytes.stream().map(
+                Integer::byteValue
+            ).toArray(Byte[]::new)
+        );
     }
 
     /**
